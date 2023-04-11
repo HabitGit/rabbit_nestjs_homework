@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+
+  postgres:
+    container_name: postgres-rabbitMQ-nestjs
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRESS_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    ports:
+      - ${POSTGRESS_PORT}:${POSTGRESS_PORT}
+
+  users:
+    container_name: users-rabbitMQ-nestjs
+    build: ./users
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRESS_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - 5001:5001
+    depends_on:
+      - postgres
+      - rabbitmq
+
+  profile:
+    container_name: profile-rabbitMQ-nestjs
+    build: ./profile
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRESS_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - CLOUDAMQP_URL=${CLOUDAMQP_URL}
+    depends_on:
+      - rabbitmq
+      - postgres
+
+  rabbitmq:
+    image: rabbitmq
+    ports:
+      - "5672:5672"
